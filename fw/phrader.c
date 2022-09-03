@@ -9,7 +9,6 @@
 #include "pico/multicore.h"
 #include "internal_timer.h"
 
-//#define NUM_CHANNELS 8
 #define CHANNEL_MASK (NUM_CHANNELS - 1)
 
 #define BUFFER_LENGTH 8192
@@ -33,7 +32,6 @@ typedef struct
 } sample_buffer_t;
 
 sample_buffer_t buffer[NUM_CHANNELS];
-uint8_t led_mode[NUM_CHANNELS];
 
 void buttons_handle_hold(uint8_t channel)
 {
