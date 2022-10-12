@@ -170,6 +170,7 @@ uint16_t handle_sample(sample_buffer_t *x, uint16_t samp)
 void main_1()
 { 
   ws2812_init();
+  sleep_ms(16);
   leds_startup();
 
   multicore_fifo_push_blocking(1);
@@ -192,13 +193,14 @@ int main()
 
   dac_init();
   buttons_init();
+  pots_init();
 
   multicore_launch_core1(main_1);
 
   while(!multicore_fifo_pop_blocking())
   ;
 
-  pots_init();
+  
   
   uint8_t channel = 0;
   uint32_t prev_time = time_us_32();

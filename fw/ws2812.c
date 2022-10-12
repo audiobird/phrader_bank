@@ -118,14 +118,12 @@ void leds_startup()
         }
     }
     
-    pot_read_and_average_all();
-
     uint8_t fade_from[NUM_PIXELS][3] = {0};
 
     for (int x = 0; x < NUM_PIXELS; x++)
     {
         urgb_u32_to_array(fade_from[x], leds[x]);
-        led_set_val(x, pot_get_value(x), 0);
+        led_set_val(x, pots_get_value(x), 0);
         urgb_u32_to_array(rgb[x], leds[x]);
         leds[x] = urgb_u32(fade_from[x][0], fade_from[x][1], fade_from[x][2]);
     }
