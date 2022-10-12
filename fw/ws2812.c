@@ -1,15 +1,14 @@
-#include "digiled.h"
+#include "ws2812.h"
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
-#include "digiled.pio.h"
+#include "ws2812.pio.h"
 #include "potentiometer.h"
 
 #define NUM_PIXELS NUM_CHANNELS
-#define DATA_PIN 3
+#define DATA_PIN 6
 
 uint32_t leds[NUM_PIXELS] = {0};
 
@@ -27,7 +26,7 @@ const uint8_t led_tab[128] =
 
 static inline void put_pixel(uint32_t pixel_rgb)
 {
-    pio_sm_put_blocking(pio1, 0, ~pixel_rgb);
+    pio_sm_put_blocking(pio0, 0, pixel_rgb);
 }
 
 static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b)
@@ -46,21 +45,8 @@ static void urgb_u32_to_array(uint8_t* out, uint32_t color)
 
 void ws2812_init()
 {
-    uint offset = pio_add_program(pio1, &digiled_program);
-
-    pio_gpio_init(pio1, DATA_PIN);
-    pio_sm_set_consecutive_pindirs(pio1, 0, DATA_PIN, 1, true);
-
-    pio_sm_config c = digiled_program_get_default_config(offset);
-    sm_config_set_sideset_pins(&c, DATA_PIN);
-    sm_config_set_out_shift(&c, false, true, 24);
-    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
-
-    float div = clock_get_hz(clk_sys) / (8000000);
-    sm_config_set_clkdiv(&c, div);
-
-    pio_sm_init(pio1, 0, offset, &c);
-    pio_sm_set_enabled(pio1, 0, true);
+    uint offset = pio_add_program(pio0, &ws2812_program);
+    ws2812_program_init(pio0, 0, offset, DATA_PIN, 584795);
 }
 
 
@@ -171,5 +157,5 @@ void leds_startup()
 void leds_update_all()
 {
     for (int x = 0; x < NUM_PIXELS; x++)
-    pio_sm_put_blocking(pio1, 0, leds[x]);
+    pio_sm_put_blocking(pio0, 0, leds[x]);
 }

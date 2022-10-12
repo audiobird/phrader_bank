@@ -1,9 +1,9 @@
-#include <stdio.h>
+#include <stdio.h> 
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "dac.h"
 #include "potentiometer.h"
-#include "digiled.h"
+#include "ws2812.h"
 #include "hardware/gpio.h"
 #include "buttons.h"
 #include "pico/multicore.h"
@@ -119,7 +119,7 @@ void buttons_handle_release(uint8_t channel, bool is_held)
 void attenuvert(uint16_t *samp, uint16_t mod)
 {
   int32_t val = (*samp) - 32768;
-  int16_t m = mod - 32768;
+  int32_t m = mod - 32768;
   val *= m;
   val /= 32768;
   *samp = val + 32768;
@@ -168,17 +168,14 @@ uint16_t handle_sample(sample_buffer_t *x, uint16_t samp)
 }
 
 void main_1()
-{
+{ 
   ws2812_init();
-  pot_init();
-  
   leds_startup();
 
   multicore_fifo_push_blocking(1);
 
   while (2)
   {
-    pot_read_and_average_all();
     leds_update_all();
   }
 }
@@ -193,14 +190,16 @@ int main()
   gpio_set_dir(23, true);
   gpio_put(23, true);
 
+  dac_init();
+  buttons_init();
+
   multicore_launch_core1(main_1);
 
   while(!multicore_fifo_pop_blocking())
   ;
 
-  dac_init();
-  buttons_init();
-
+  pots_init();
+  
   uint8_t channel = 0;
   uint32_t prev_time = time_us_32();
 
@@ -211,7 +210,7 @@ int main()
 
     button_check(channel);
 
-    uint16_t res = pot_get_value(channel);
+    uint16_t res = pots_get_value(channel);
     res = handle_sample(&buffer[channel], res);
 
     dac_output_sample(res, channel);
