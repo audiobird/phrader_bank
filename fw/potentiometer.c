@@ -35,7 +35,7 @@ void dma_handler()
     uint32_t samp = dma_hw->sniff_data;
     //16 bits
     samp /= 16;
-    pot_values[cnt] = samp;
+    pot_values[cnt] = ~samp;
     dma_hw->sniff_data = 0;
 
     //increment to next channel

@@ -21,10 +21,10 @@
 
 static const uint16_t ws2812_program_instructions[] = {
             //     .wrap_target
-    0x7121, //  0: out    x, 1            side 1 [1] 
-    0x0123, //  1: jmp    !x, 3           side 0 [1] 
-    0x0500, //  2: jmp    0               side 0 [5] 
-    0xb542, //  3: nop                    side 1 [5] 
+    0x6221, //  0: out    x, 1            side 0 [2] 
+    0x1123, //  1: jmp    !x, 3           side 1 [1] 
+    0x1400, //  2: jmp    0               side 1 [4] 
+    0xa442, //  3: nop                    side 0 [4] 
             //     .wrap
 };
 
@@ -38,6 +38,41 @@ static const struct pio_program ws2812_program = {
 static inline pio_sm_config ws2812_program_get_default_config(uint offset) {
     pio_sm_config c = pio_get_default_sm_config();
     sm_config_set_wrap(&c, offset + ws2812_wrap_target, offset + ws2812_wrap);
+    sm_config_set_sideset(&c, 1, false, false);
+    return c;
+}
+#endif
+
+// ---------- //
+// ws2812_old //
+// ---------- //
+
+#define ws2812_old_wrap_target 0
+#define ws2812_old_wrap 3
+
+#define ws2812_old_T1 6
+#define ws2812_old_T2 2
+#define ws2812_old_T3 2
+
+static const uint16_t ws2812_old_program_instructions[] = {
+            //     .wrap_target
+    0x7221, //  0: out    x, 1            side 1 [2] 
+    0x0123, //  1: jmp    !x, 3           side 0 [1] 
+    0x0400, //  2: jmp    0               side 0 [4] 
+    0xb442, //  3: nop                    side 1 [4] 
+            //     .wrap
+};
+
+#if !PICO_NO_HARDWARE
+static const struct pio_program ws2812_old_program = {
+    .instructions = ws2812_old_program_instructions,
+    .length = 4,
+    .origin = -1,
+};
+
+static inline pio_sm_config ws2812_old_program_get_default_config(uint offset) {
+    pio_sm_config c = pio_get_default_sm_config();
+    sm_config_set_wrap(&c, offset + ws2812_old_wrap_target, offset + ws2812_old_wrap);
     sm_config_set_sideset(&c, 1, false, false);
     return c;
 }

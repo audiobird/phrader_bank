@@ -8,7 +8,13 @@
 #include "potentiometer.h"
 
 #define NUM_PIXELS NUM_CHANNELS
+
+#if LED_PIN_OLD
+#define DATA_PIN 3
+#warning "Compiling for depricated LED circuit"
+#else
 #define DATA_PIN 6
+#endif
 
 uint32_t leds[NUM_PIXELS] = {0};
 
@@ -26,6 +32,10 @@ const uint8_t led_tab[128] =
 
 static inline void put_pixel(uint32_t pixel_rgb)
 {
+    #if LED_PIN_OLD
+    pixel_rgb ^= 0xffffffff;
+    #endif
+
     pio_sm_put_blocking(pio0, 0, pixel_rgb);
 }
 
@@ -45,8 +55,14 @@ static void urgb_u32_to_array(uint8_t* out, uint32_t color)
 
 void ws2812_init()
 {
-    uint offset = pio_add_program(pio0, &ws2812_program);
-    ws2812_program_init(pio0, 0, offset, DATA_PIN, 584795);
+    #if LED_PIN_OLD
+    const pio_program_t* prog = &ws2812_old_program;
+    #else 
+    const pio_program_t* prog = &ws2812_program;
+    #endif
+
+    uint offset = pio_add_program(pio0, prog);
+    ws2812_program_init(pio0, 0, offset, DATA_PIN, 800000);
 }
 
 

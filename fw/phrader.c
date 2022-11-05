@@ -19,7 +19,9 @@ typedef struct
   uint8_t recording   : 1;
   uint8_t record_conf : 1;
   uint8_t attenuvert  : 1;
-  uint8_t reserved    : 4;
+  uint8_t unipolar    : 1;
+  uint8_t neg         : 1;
+  uint8_t reserved    : 2;
 } flags_t;
 
 typedef struct
@@ -93,8 +95,23 @@ void buttons_handle_release(uint8_t channel, bool is_held)
       x->flags.playback = 1;
       x->led_mode = 2;
     }
-      
-
+    else
+    {
+      //on a not valid recording press we can change the channel's mode
+      if(!x->flags.unipolar)
+      {
+        x->flags.unipolar = 1;
+        x->flags.neg = 0;
+      }
+      else 
+      {
+        if (x->flags.neg == 0)
+        x->flags.neg = 1;
+        else
+        x->flags.unipolar = 0;
+      }
+    }
+    
     x->flags.attenuvert = 0;
   }
   else if (x->flags.playback)
@@ -178,6 +195,7 @@ void main_1()
   while (2)
   {
     leds_update_all();
+    sleep_ms(8);
   }
 }
 
@@ -213,11 +231,35 @@ int main()
     button_check(channel);
 
     uint16_t res = pots_get_value(channel);
-    res = handle_sample(&buffer[channel], res);
+
+    sample_buffer_t* x = &buffer[channel];
+
+    if (x->flags.unipolar)
+    {
+      int32_t temp = res;
+
+      int32_t outmax = 65535; 
+      int32_t outmin = 32768;
+
+      if (x->flags.neg)
+      {
+        outmax = 32767;
+        outmin = 0;
+      }
+
+      temp *= (outmax - outmin + 1);
+      temp /= 65535;
+      temp += outmin;
+      
+      res = temp;
+
+    }
+
+    res = handle_sample(x, res);
 
     dac_output_sample(res, channel);
 
-    led_set_val(channel, res, buffer[channel].led_mode);
+    led_set_val(channel, res, x->led_mode);
 
     channel++;
     channel &= CHANNEL_MASK;
