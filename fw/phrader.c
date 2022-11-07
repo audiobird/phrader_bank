@@ -20,8 +20,7 @@ typedef struct
   uint8_t record_conf : 1;
   uint8_t attenuvert  : 1;
   uint8_t unipolar    : 1;
-  uint8_t neg         : 1;
-  uint8_t reserved    : 2;
+  uint8_t reserved    : 3;
 } flags_t;
 
 typedef struct
@@ -98,18 +97,7 @@ void buttons_handle_release(uint8_t channel, bool is_held)
     else
     {
       //on a not valid recording press we can change the channel's mode
-      if(!x->flags.unipolar)
-      {
-        x->flags.unipolar = 1;
-        x->flags.neg = 0;
-      }
-      else 
-      {
-        if (x->flags.neg == 0)
-        x->flags.neg = 1;
-        else
-        x->flags.unipolar = 0;
-      }
+      x->flags.unipolar ^= 1;
     }
     
     x->flags.attenuvert = 0;
@@ -131,6 +119,17 @@ void buttons_handle_release(uint8_t channel, bool is_held)
   {
     // should not possible.
   }
+}
+
+uint16_t handle_polarity(sample_buffer_t* x, uint16_t samp)
+{
+  uint32_t temp = samp;
+
+  temp *= 32768;
+  temp /= 65535;
+  temp += 32768;
+      
+  return (uint16_t)(temp);
 }
 
 void attenuvert(uint16_t *samp, uint16_t mod)
@@ -217,7 +216,6 @@ int main()
 
   while(!multicore_fifo_pop_blocking())
   ;
-
   
   
   uint8_t channel = 0;
@@ -235,26 +233,8 @@ int main()
     sample_buffer_t* x = &buffer[channel];
 
     if (x->flags.unipolar)
-    {
-      int32_t temp = res;
-
-      int32_t outmax = 65535; 
-      int32_t outmin = 32768;
-
-      if (x->flags.neg)
-      {
-        outmax = 32767;
-        outmin = 0;
-      }
-
-      temp *= (outmax - outmin + 1);
-      temp /= 65535;
-      temp += outmin;
-      
-      res = temp;
-
-    }
-
+    res = handle_polarity(x, res);
+    
     res = handle_sample(x, res);
 
     dac_output_sample(res, channel);
@@ -265,3 +245,4 @@ int main()
     channel &= CHANNEL_MASK;
   }
 }
+
