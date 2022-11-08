@@ -121,12 +121,12 @@ void buttons_handle_release(uint8_t channel, bool is_held)
   }
 }
 
-uint16_t handle_polarity(sample_buffer_t* x, uint16_t samp)
+uint16_t handle_unipolarity(sample_buffer_t* x, uint16_t samp)
 {
   uint32_t temp = samp;
 
   temp *= 32768;
-  temp /= 65535;
+  temp /= 65535u;
   temp += 32768;
       
   return (uint16_t)(temp);
@@ -233,8 +233,8 @@ int main()
     sample_buffer_t* x = &buffer[channel];
 
     if (x->flags.unipolar)
-    res = handle_polarity(x, res);
-    
+    res = handle_unipolarity(x, res);
+
     res = handle_sample(x, res);
 
     dac_output_sample(res, channel);

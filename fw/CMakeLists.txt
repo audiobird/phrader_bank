@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
  
 add_compile_definitions(NUM_CHANNELS=8
-LED_PIN_OLD=1) #set this to 1 if the circuit board is before rev 4
+LED_PIN_OLD=1) #set this to 1 if the circuit board is before rev 3
  
 add_executable(phrader
   phrader.c
