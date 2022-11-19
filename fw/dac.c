@@ -4,7 +4,7 @@
 
 #define NUM_DACS NUM_CHANNELS
 
-void dac_output_sample(uint16_t data, uint8_t channel)
+void dac_output_sample(uint8_t channel, int32_t data)
 {
     uint8_t is_b = 0;
 
@@ -13,7 +13,7 @@ void dac_output_sample(uint16_t data, uint8_t channel)
 
     channel >>= 1;
 
-    pwm_set_chan_level(channel + 4, is_b, data >> DAC_SHIFT);
+    pwm_set_chan_level(channel + 4, is_b, (data + 32768) >> DAC_SHIFT);
 }
 
 void dac_init()

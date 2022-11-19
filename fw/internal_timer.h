@@ -1,8 +1,7 @@
 #ifndef INTERNAL_TIMER_H
 #define INTERNAL_TIMER_H
 
-#include <inttypes.h>
-#include <stdbool.h>
+#include <phrader.h>
 
 //returns true if more than a millisecond has passed since last time true was returned.
 bool main_timer();

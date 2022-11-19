@@ -7,10 +7,12 @@
 uint32_t prev_time = 0;
 uint32_t current_time = 0;
 
+
 uint32_t internal_timer_get_count()
 {
     return current_time;
 }
+
 
 bool main_timer()
 {

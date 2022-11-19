@@ -45,27 +45,73 @@ void button_check(uint8_t channel)
 
     x->is_pressed = state & mask;
 
-    if (x->is_pressed == prev_state[channel]){
+    if (x->is_pressed != prev_state[channel])
+    {
+        prev_state[channel] = x->is_pressed;
+
+        //if the button was pressed we should record the time and then figure out if the tap counter timed out.
         if (x->is_pressed)
         {
-            if (time - x->time >= HOLD_TIME_US)
+            x->time_last_pressed = time;
+
+            buttons_handle_press(channel);
+
+            if (time - x->time_last_released >= TAP_MAX_BETWEEN_DURATION_US)
+            {
+                x->tap_count = 0;
+            }
+        }
+        else
+        {
+            //the button was released.
+            x->time_last_released = time;
+            x->is_held = 0;
+
+            buttons_handle_release(channel);
+
+            if (time - x->time_last_pressed >= TAP_MAX_TIME_DOWN_US)
+            {
+                //this tap was too long.... that's okay. 
+                if (x->tap_count)
+                {
+                    //if we already had a tap counted we should just throw them all away
+                    x->tap_count = 0;
+                }
+            }
+            else
+            {
+                //this was a valid tap. 
+                x->tap_count += 1;
+
+                if (x->tap_count == 2)
+                {
+                    //if we reached two taps we can do something!
+                    buttons_handle_double_tap(channel);
+                    x->tap_count = 0;
+                }
+            }
+        }
+    }
+    else
+    {
+        //okay so our button state hasn't changed... that means we are either holding or not 
+        if (x->is_pressed)
+        {
+            if (time - x->time_last_pressed >= HOLD_TIME_US && !x->is_held)
             {
                 x->is_held = 1;
                 buttons_handle_hold(channel);
             }
         }
-        return;
-    }
-    
-    if (x->is_pressed)
-    buttons_handle_press(channel);
-    else
-    {
-        buttons_handle_release(channel, x->is_held);
-        x->is_held = 0;
-    }
-
-    x->time = time;
-
-    prev_state[channel] = x->is_pressed;
+        else
+        {
+            //now we can check for a tap timeout...
+            if (time - x->time_last_released >= TAP_MAX_BETWEEN_DURATION_US && x->tap_count)
+            {
+                //time out.
+                buttons_handle_tap(channel);
+                x->tap_count = 0;
+            }
+        }
+    }    
 }

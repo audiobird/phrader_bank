@@ -13,7 +13,7 @@ const uint8_t pot_table[NUM_POTS] = {5, 7, 3, 1, 2, 4, 0, 6};
 
 uint16_t dma_buffer_dummy;
 
-uint16_t pot_values[NUM_POTS];
+int16_t pot_values[NUM_POTS];
 
 void pots_setup_mux(uint8_t channel)
 {
@@ -32,10 +32,10 @@ void dma_handler()
 
     //read the accumulator
     //20 bits
-    uint32_t samp = dma_hw->sniff_data;
+    int32_t samp = dma_hw->sniff_data;
     //16 bits
     samp /= 16;
-    pot_values[cnt] = ~samp;
+    pot_values[cnt] = (~samp) - 32768;
     dma_hw->sniff_data = 0;
 
     //increment to next channel
@@ -63,7 +63,7 @@ void pots_init()
         true,    // Write each completed conversion to the sample FIFO
         true,    // Enable DMA data request (DREQ)
         1,       // DREQ (and IRQ) asserted when at least 1 sample present
-        false,   // We won't see the ERR bit because of 8 bit reads; disable.
+        false,   
         false     
     );
     adc_set_clkdiv(0);
@@ -71,7 +71,7 @@ void pots_init()
 
     dma_channel_config cfg = dma_channel_get_default_config(0);
 
-    // Reading from constant address, writing to incrementing byte addresses
+    // Reading from constant address, writing to constant
     channel_config_set_transfer_data_size(&cfg, DMA_SIZE_16);
     channel_config_set_read_increment(&cfg, false);
     channel_config_set_write_increment(&cfg, false);
@@ -95,7 +95,7 @@ void pots_init()
     dma_handler();
 }
 
-uint16_t pots_get_value(uint8_t channel)
+int16_t pots_get_value(uint8_t channel)
 {
   return pot_values[channel];
 }

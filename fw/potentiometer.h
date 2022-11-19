@@ -1,7 +1,7 @@
 #ifndef POT_H
 #define POT_H
 
-#include "pico/stdlib.h"
+#include "phrader.h"
 
 #define MUX_PIN_0 0
 #define MUX_PIN_1 1
@@ -14,7 +14,7 @@
 void pots_init();
 
 //returns the previously obtained pot value
-uint16_t pots_get_value(uint8_t channel);
+int16_t pots_get_value(uint8_t channel);
 
 //reads each pot 256 times and averages them out
 //averaged values can be obtained using pot_get_value()

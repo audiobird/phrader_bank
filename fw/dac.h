@@ -1,7 +1,7 @@
 #ifndef DAC_H
 #define DAC_H
 
-#include "hardware/pwm.h"
+#include "phrader.h"
 
 #define PWM_MAX_OUTPUT_TARGET (2.5)
 #define PWM_MAX_OUTPUT_VOLTAGE (3.3)
@@ -18,6 +18,6 @@
 void dac_init();
 
 //sends out a sample.
-void dac_output_sample(uint16_t data, uint8_t channel);
+void dac_output_sample(uint8_t channel, int32_t data);
 
 #endif
